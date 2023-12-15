@@ -1,8 +1,12 @@
 (ns component.rw-api.api-test
-  (:require [clojure.test :refer [deftest testing is]]
+  (:require [clj-http.client :as client]
+            [clojure.string :as str]
+            [clojure.test :refer [deftest is testing]]
             [com.stuartsierra.component :as component]
-            [rw-api.core :as core]
-            [clj-http.client :as client]))
+            [rw-api.components.pedestal-comp :refer [url-for]]
+            [rw-api.core :as core]))
+
+(def sut (gensym))
 
 (defmacro with-system
   [[bound-var binding-expr] & body]
@@ -12,14 +16,20 @@
        (finally
          (component/stop ~bound-var)))))
 
-(def sut (gensym))
+(defn sut->url [sut path]
+  (str/join ["http://localhost:" (-> sut :pedestal-comp :config :server :port) path]))
+
+(defn get-free-port []
+  (with-open [socket (java.net.ServerSocket. 0)]
+    (.getLocalPort socket)))
 
 (deftest greeting-test
   (testing "greeting-test"
-    (with-system [sut (core/rw-api-system {:server {:port 8088}})]
-      (is (= {:status 200 :body "Hi youtube!"} (-> (str "http://localhost:" 8088 "/greet")
-                                                   (client/get)
-                                                   (select-keys [:body :status])))))))
+    (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}})]
+      (is (= {:status 200 :body "Hi youtube!"}
+             (-> (sut->url sut (url-for :greet))
+                 (client/get)
+                 (select-keys [:body :status])))))))
 
 (deftest get-todo-test
   (testing "get-todo-test"
@@ -28,18 +38,20 @@
                   :name "Todo for test"
                   :items [{:id (random-uuid)
                            :name "Finish the test"}]}]
-      (with-system [sut (core/rw-api-system {:server {:port 8088}})]
+      (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}})]
         (reset! (-> sut :in-memory-state-comp :state-atom) [todo-1])
         (is (= {:status 200 :body (pr-str todo-1)}
-               (-> (str "http://localhost:" 8088 "/todo/" todo-id-1)
+               (-> (sut->url sut (url-for :get-todo {:path-params {:todo-id todo-id-1}}))
                    (client/get)
                    (select-keys [:status :body]))))
         (testing "Empty body is return for random id"
           (is (= {:status 200 :body ""}
-                 (-> (str "http://localhost:" 8088 "/todo/" (random-uuid))
+                 (-> (sut->url sut (url-for :get-todo {:path-params {:todo-id (random-uuid)}}))
                      (client/get)
                      (select-keys [:status :body])))))))))
 
 
+
 (comment
+  (greeting-test)
   (get-todo-test))
