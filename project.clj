@@ -16,7 +16,8 @@
                  [com.stuartsierra/component "1.1.0"]
                  [com.stuartsierra/component.repl "0.2.0"]
 
-                 [clj-http "3.12.3"]]
+                 [clj-http "3.12.3"]
+                 [cheshire "5.12.0"]]
   :main ^:skip-aot rw-api.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all

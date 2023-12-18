@@ -8,8 +8,7 @@
 
   (testing "get todo by id endpoint url"
     (let [todo-id (random-uuid)]
-      (is (= (str "/todo/" todo-id) (url-for :get-todo {:path-params {:todo-id todo-id}})))))
+      (is (= (str "/todo/" todo-id) (url-for :get-todo {:path-params {:todo-id todo-id}}))))))
 
-
-  (comment
-    (url-for-test)))
+(comment
+  (url-for-test))
