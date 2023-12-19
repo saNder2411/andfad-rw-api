@@ -47,7 +47,8 @@
           todo-1 {:id todo-id-1
                   :name "Todo for test"
                   :items [{:id (str (random-uuid))
-                           :name "Finish the test"}]}]
+                           :name "Finish the test"
+                           :status "created"}]}]
 
       (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}})]
         (reset! (-> sut :in-memory-state-comp :state-atom) [todo-1])
@@ -71,17 +72,37 @@
           todo-1 {:id todo-id-1
                   :name "Todo for test"
                   :items [{:id (str (random-uuid))
-                           :name "Finish the test"}]}]
+                           :name "Finish the test"
+                           :status "created"}]}]
 
       (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}})]
-        (is (= {:status 201 :body todo-1}
-               (-> (sut->url sut (url-for :post-todo))
-                   (client/post {:accept :json
-                                 :content-type :json
-                                 :as :json
-                                 :throw-exceptions false
-                                 :body (json/encode todo-1)})
-                   (select-keys [:status :body]))))))))
+        (testing "Store and retrieve todo by id"
+          (is (= {:status 201 :body todo-1}
+                 (-> (sut->url sut (url-for :post-todo))
+                     (client/post {:accept :json
+                                   :content-type :json
+                                   :as :json
+                                   :throw-exceptions false
+                                   :body (json/encode todo-1)})
+                     (select-keys [:status :body]))))
+
+          (is (= {:status 200 :body todo-1}
+                 (-> (sut->url sut (url-for :get-todo {:path-params {:todo-id todo-id-1}}))
+                     (client/get {:accept :json
+                                  :as :json
+                                  :throw-exceptions false})
+                     (select-keys [:status :body])))))
+
+        (testing "Invalid Todo is rejected"
+          (is (= {:status 500}
+                 (-> (sut->url sut (url-for :post-todo))
+                     (client/post {:accept :json
+                                   :content-type :json
+                                   :as :json
+                                   :throw-exceptions false
+                                   :body (json/encode {:id todo-id-1
+                                                       :name "Todo for test"})})
+                     (select-keys [:status])))))))))
 
 (comment
   (greeting-test)

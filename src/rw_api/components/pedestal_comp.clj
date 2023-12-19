@@ -5,7 +5,8 @@
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.body-params :as body-params]
-            [cheshire.core :as json]))
+            [cheshire.core :as json]
+            [schema.core :as schema]))
 
 (defn response
   ([status body]
@@ -41,23 +42,25 @@
               (assoc context :response response)))})
 
 
+(schema/defschema TodoItem
+  {:id schema/Str
+   :name schema/Str
+   :status schema/Str})
+
+(schema/defschema Todo
+  {:id schema/Str
+   :name schema/Str
+   :items [TodoItem]})
+
+
 (def post-todo-handler
   {:name :post-todo-handler
    :enter (fn [{:keys [dependencies] :as context}]
             (let [request (:request context)
-                  todo (:json-params request)]
+                  todo (schema/validate Todo (:json-params request))]
               (save-todo! dependencies todo)
               (assoc context :response (created todo))))})
 
-(comment
-  [{:id (random-uuid)
-    :name "List Name"
-    :items [{:id (random-uuid)
-             :name "Item Name"
-             :status :created}]}
-   {:id (random-uuid)
-    :name "List Name"
-    :items []}])
 
 (defn respond-hello [_]
   {:status 200 :body "Hi youtube!"})
