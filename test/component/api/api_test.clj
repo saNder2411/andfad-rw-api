@@ -4,7 +4,8 @@
             [clojure.test :refer [deftest is testing]]
             [com.stuartsierra.component :as component]
             [rw-api.components.pedestal-comp :refer [url-for]]
-            [rw-api.core :as core]))
+            [rw-api.core :as core]
+            [cheshire.core :as json]))
 
 (def sut (gensym))
 
@@ -63,7 +64,27 @@
                      (client/get {:throw-exceptions false})
                      (select-keys [:status :body])))))))))
 
+
+(deftest post-todo-test
+  (testing "post-todo-test"
+    (let [todo-id-1 (str (random-uuid))
+          todo-1 {:id todo-id-1
+                  :name "Todo for test"
+                  :items [{:id (str (random-uuid))
+                           :name "Finish the test"}]}]
+
+      (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}})]
+        (is (= {:status 201 :body todo-1}
+               (-> (sut->url sut (url-for :post-todo))
+                   (client/post {:accept :json
+                                 :content-type :json
+                                 :as :json
+                                 :throw-exceptions false
+                                 :body (json/encode todo-1)})
+                   (select-keys [:status :body]))))))))
+
 (comment
   (greeting-test)
   (content-negotiation-test)
-  (get-todo-test))
+  (get-todo-test)
+  (post-todo-test))

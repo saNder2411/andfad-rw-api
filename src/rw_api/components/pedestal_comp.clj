@@ -4,6 +4,7 @@
             [io.pedestal.http.route :as route]
             [io.pedestal.interceptor :as interceptor]
             [io.pedestal.http.content-negotiation :as content-negotiation]
+            [io.pedestal.http.body-params :as body-params]
             [cheshire.core :as json]))
 
 (defn response
@@ -11,11 +12,13 @@
    (merge
     {:status status
      :headers {"Content-Type" "application/json"}}
-    (when body {:body body})))
+    (when body {:body (json/encode body)})))
 
   ([status] (response status nil)))
 
 (def ok (partial response 200))
+
+(def created (partial response 201))
 
 (def not-found (partial response 404))
 
@@ -24,15 +27,27 @@
        (filter #(= (:id %) id))
        (first)))
 
+(defn save-todo! [{:keys [in-memory-state-comp]} todo]
+  (swap! (:state-atom in-memory-state-comp)  conj todo))
+
 (def get-todo-handler
   {:name :get-todo-handler
    :enter (fn [{:keys [dependencies] :as context}]
             (let [request (:request context)
                   todo (get-todo-by-id dependencies (-> request :path-params :todo-id))
                   response (if todo
-                             (ok (json/encode todo))
+                             (ok todo)
                              (not-found))]
               (assoc context :response response)))})
+
+
+(def post-todo-handler
+  {:name :post-todo-handler
+   :enter (fn [{:keys [dependencies] :as context}]
+            (let [request (:request context)
+                  todo (:json-params request)]
+              (save-todo! dependencies todo)
+              (assoc context :response (created todo))))})
 
 (comment
   [{:id (random-uuid)
@@ -49,7 +64,8 @@
 
 (def routes (route/expand-routes
              #{["/greet" :get respond-hello :route-name :greet]
-               ["/todo/:todo-id" :get get-todo-handler :route-name :get-todo]}))
+               ["/todo/:todo-id" :get get-todo-handler :route-name :get-todo]
+               ["/todo" :post [(body-params/body-params) post-todo-handler] :route-name :post-todo]}))
 
 (def url-for (route/url-for-routes routes))
 
@@ -59,7 +75,8 @@
     :enter #(assoc % :dependencies dependencies)}))
 
 (def content-negotiation-interceptor
-  (content-negotiation/negotiate-content ["application/json"]))
+  (content-negotiation/negotiate-content ["text/html"
+                                          "application/json"]))
 
 (defrecord PedestalComp [config example-comp in-memory-state-comp]
   component/Lifecycle
