@@ -18,7 +18,17 @@
 
                  [clj-http "3.12.3"]
                  [cheshire "5.12.0"]
-                 [prismatic/schema "1.4.1"]]
+                 [prismatic/schema "1.4.1"]
+
+                 [org.testcontainers/testcontainers "1.19.3"]
+                 [org.testcontainers/postgresql "1.19.3"]
+
+                 [com.github.seancorfield/next.jdbc "1.3.909"]
+                 [org.postgresql/postgresql "42.7.1"]
+
+                 [com.zaxxer/HikariCP "5.1.0"]
+                 [hiccup/hiccup "2.0.0-RC2"]
+                 [faker "0.3.2"]]
   :main ^:skip-aot rw-api.core
   :target-path "target/%s"
   :profiles {:uberjar {:aot :all
