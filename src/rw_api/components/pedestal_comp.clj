@@ -90,7 +90,7 @@
   (content-negotiation/negotiate-content ["text/html"
                                           "application/json"]))
 
-(defrecord PedestalComp [config example-comp data-source in-memory-state-comp]
+(defrecord PedestalComp [config data-source in-memory-state-comp]
   component/Lifecycle
 
   (start [comp]
@@ -120,9 +120,6 @@
 ;; PedestalComp
 
 ;; {:config {:server {:port 50255}},
-;;  :example-comp
-;;  {:config {:server {:port 50255}}
-;;   :state :started}
 
 ;;  :in-memory-state-comp
 ;;  {:config {:server {:port 50255}}

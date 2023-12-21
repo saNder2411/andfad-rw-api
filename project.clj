@@ -28,6 +28,7 @@
 
                  [com.zaxxer/HikariCP "5.1.0"]
                  [hiccup/hiccup "2.0.0-RC2"]
+                 [org.flywaydb/flyway-core "9.21.2"]
                  [faker "0.3.2"]]
   :main ^:skip-aot rw-api.core
   :target-path "target/%s"

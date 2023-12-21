@@ -1,22 +1,34 @@
 (ns rw-api.core
   (:gen-class)
-  (:require [rw-api.config :as config]
-            [rw-api.components.template-comp :as template-comp]
-            [rw-api.components.pedestal-comp :as pedestal-comp]
+  (:require [com.stuartsierra.component :as component]
+            [next.jdbc.connection :as connection]
             [rw-api.components.in-memory-state-comp :as in-memory-state-comp]
-            [com.stuartsierra.component :as component]
-            [next.jdbc.connection :as connection])
-  (:import (com.zaxxer.hikari HikariDataSource)))
+            [rw-api.components.pedestal-comp :as pedestal-comp]
+            [rw-api.config :as config])
+  (:import (com.zaxxer.hikari HikariDataSource)
+           (org.flywaydb.core Flyway)))
+
+(defn data-source-comp [config]
+  (connection/component
+   HikariDataSource
+   (assoc
+    (:db-spec config)
+    :init-fn (fn [datasource]
+               (.migrate
+                (.. (Flyway/configure)
+                    (dataSource datasource) 
+                    (locations (into-array String ["classpath:database/migrations"]))
+                    (table "schema_version")
+                    (load)))))))
 
 
 (defn rw-api-system [config]
   (component/system-map
-   :example-comp (template-comp/create-template-comp config)
    :in-memory-state-comp (in-memory-state-comp/create-in-memory-state-comp config)
-   :data-source (connection/component HikariDataSource (:db-spec config))
+   :data-source (data-source-comp config)
    :pedestal-comp (component/using
                    (pedestal-comp/create-pedestal-comp config)
-                   [:example-comp :data-source :in-memory-state-comp])))
+                   [:data-source :in-memory-state-comp])))
 
 (defn -main []
   (let [system (-> (config/read-config)

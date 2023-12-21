@@ -27,16 +27,17 @@
 (deftest info-handler-test
   (testing "info-handler-test"
     (let [db-container (doto (PostgreSQLContainer. "postgres:15.4")
-                         (.withDatabaseName "rw-api-db")
+                         (.withDatabaseName "rwa-test")
                          (.withUsername "test")
                          (.withPassword "test"))]
       (try
         (.start db-container)
-        (with-system [sut (core/rw-api-system {:server {:port (get-free-port)}
-                                               :htmx {:server {:port (get-free-port)}}
-                                               :db-spec {:jdbcUrl (.getJdbcUrl db-container)
-                                                         :username (.getUsername db-container)
-                                                         :password (.getPassword db-container)}})]
+        (with-system
+          [sut (core/rw-api-system {:server {:port (get-free-port)}
+                                    :htmx {:server {:port (get-free-port)}}
+                                    :db-spec {:jdbcUrl (.getJdbcUrl db-container)
+                                              :username (.getUsername db-container)
+                                              :password (.getPassword db-container)}})]
           (is (= {:status 200 :body "Database server version: 15.4 (Debian 15.4-2.pgdg120+1)"}
                  (-> (sut->url sut (url-for :info))
                      (client/get {:accept :json})
