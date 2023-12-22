@@ -16,7 +16,7 @@
     :init-fn (fn [datasource]
                (.migrate
                 (.. (Flyway/configure)
-                    (dataSource datasource) 
+                    (dataSource datasource)
                     (locations (into-array String ["classpath:database/migrations"]))
                     (table "schema_version")
                     (load)))))))
@@ -36,4 +36,5 @@
                    (component/start-system))]
     (println "Starting Real World API")
     (.addShutdownHook (Runtime/getRuntime) (new Thread #(component/stop-system system)))))
+
 

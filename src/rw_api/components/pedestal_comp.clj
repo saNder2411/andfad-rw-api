@@ -45,12 +45,12 @@
 
 (schema/defschema TodoItem
   {:id schema/Str
-   :name schema/Str
+   :title schema/Str
    :status schema/Str})
 
 (schema/defschema Todo
   {:id schema/Str
-   :name schema/Str
+   :title schema/Str
    :items [TodoItem]})
 
 
@@ -94,7 +94,7 @@
   component/Lifecycle
 
   (start [comp]
-    (println "Starting PedestalComp")
+    (println "Starting PedestalComp!!")
     (let [server (-> {::http/routes routes
                       ::http/type :jetty
                       ::http/join? false
