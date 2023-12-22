@@ -1,13 +1,15 @@
 (ns rw-api.components.pedestal-comp
-  (:require [com.stuartsierra.component :as component]
+  (:require [cheshire.core :as json]
+            [com.stuartsierra.component :as component]
+            [honey.sql :as sql]
             [io.pedestal.http :as http]
+            [io.pedestal.http.body-params :as body-params]
+            [io.pedestal.http.content-negotiation :as content-negotiation]
             [io.pedestal.http.route :as route]
             [io.pedestal.interceptor :as interceptor]
-            [io.pedestal.http.content-negotiation :as content-negotiation]
-            [io.pedestal.http.body-params :as body-params]
-            [cheshire.core :as json]
-            [schema.core :as schema]
-            [next.jdbc :as jdbc]))
+            [next.jdbc :as jdbc]
+            [next.jdbc.result-set :as rs]
+            [schema.core :as schema]))
 
 (defn response
   ([status body]
@@ -24,22 +26,36 @@
 
 (def not-found (partial response 404))
 
+(defn save-todo! [{:keys [in-memory-state-comp]} todo]
+  (swap! (:state-atom in-memory-state-comp)  conj todo))
+
 (defn get-todo-by-id [{:keys [in-memory-state-comp]} id]
   (->> @(:state-atom in-memory-state-comp)
        (filter #(= (:id %) id))
        (first)))
-
-(defn save-todo! [{:keys [in-memory-state-comp]} todo]
-  (swap! (:state-atom in-memory-state-comp)  conj todo))
 
 (def get-todo-handler
   {:name :get-todo-handler
    :enter (fn [{:keys [dependencies] :as context}]
             (let [request (:request context)
                   todo (get-todo-by-id dependencies (-> request :path-params :todo-id))
-                  response (if todo
-                             (ok todo)
-                             (not-found))]
+                  response (if todo (ok todo) (not-found))]
+              (assoc context :response response)))})
+
+
+(def db-get-todo-handler
+  {:name :db-get-todo-handler
+   :enter (fn [{:keys [dependencies] :as context}]
+            (let [{:keys [data-source]} dependencies
+                  request (:request context)
+                  todo-id (-> request :path-params :todo-id (parse-uuid))
+                  select-query (-> {:select :*
+                                    :from :todo
+                                    :where [:= :todo-id todo-id]}
+                                   (sql/format))
+                  todo (jdbc/execute-one!
+                        (data-source) select-query {:builder-fn rs/as-unqualified-kebab-maps})
+                  response (if todo (ok todo) (not-found))]
               (assoc context :response response)))})
 
 
@@ -77,7 +93,8 @@
              #{["/greet" :get respond-hello :route-name :greet]
                ["/info" :get info-handler :route-name :info]
                ["/todo/:todo-id" :get get-todo-handler :route-name :get-todo]
-               ["/todo" :post [(body-params/body-params) post-todo-handler] :route-name :post-todo]}))
+               ["/todo" :post [(body-params/body-params) post-todo-handler] :route-name :post-todo]
+               ["/db/todo/:todo-id" :get db-get-todo-handler :route-name :db-get-todo]}))
 
 (def url-for (route/url-for-routes routes))
 

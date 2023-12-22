@@ -6,7 +6,7 @@
             [rw-api.components.pedestal-comp :as pedestal-comp]
             [rw-api.config :as config])
   (:import (com.zaxxer.hikari HikariDataSource)
-           (org.flywaydb.core Flyway)))
+           (org.flywaydb.core Flyway))) 
 
 (defn data-source-comp [config]
   (connection/component
@@ -36,5 +36,3 @@
                    (component/start-system))]
     (println "Starting Real World API")
     (.addShutdownHook (Runtime/getRuntime) (new Thread #(component/stop-system system)))))
-
-

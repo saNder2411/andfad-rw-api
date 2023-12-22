@@ -9,7 +9,5 @@
                           :db-spec {:jdbcUrl "jdbc:postgresql://localhost:5432/rwa"
                                     :username "rwa"
                                     :password "rwa"}})))
-
 (comment
-  (component-repl/reset)
-  )
+  (component-repl/reset))

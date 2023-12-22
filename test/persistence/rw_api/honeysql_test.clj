@@ -5,7 +5,6 @@
             [utils.test-helpers :as helpers]
             [honey.sql :as sql]))
 
-
 (def sut (gensym))
 
 (-> {:select [[[:count :t1.a] :t1a] :t2.*]
@@ -17,7 +16,7 @@
               [:<> :t2.b "something"]]]}
     (sql/format))
 
-(deftest migrations-test
+(deftest migrations-honeysql-query-test
   (let [database-container (helpers/create-db-contatiner)]
     (try
       (.start database-container)
@@ -43,7 +42,7 @@
       (finally
         (.stop database-container)))))
 
-(deftest todo-table-test
+(deftest todo-table-honeysql-query-test
   (let [database-container (helpers/create-db-contatiner)]
     (try
       (.start database-container)
@@ -79,6 +78,6 @@
 
 
 (comment
-  (migrations-test)
+  (migrations-honeysql-query-test)
 
-  (todo-table-test))
+  (todo-table-honeysql-query-test))
