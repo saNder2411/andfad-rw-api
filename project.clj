@@ -30,6 +30,7 @@
                  [hiccup/hiccup "2.0.0-RC2"]
                  [org.flywaydb/flyway-core "9.21.2"]
                  [com.github.seancorfield/honeysql "2.5.1103"]
+                 [metosin/malli "0.13.0"]
                  [faker "0.3.2"]]
   :main ^:skip-aot rw-api.core
   :target-path "target/%s"
