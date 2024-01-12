@@ -7,7 +7,7 @@
 (def sut (gensym))
 
 (deftest migrations-test
-  (let [database-container (helpers/create-db-contatiner)]
+  (let [database-container (helpers/create-db-container)]
     (try
       (.start database-container)
       (helpers/with-system
@@ -30,7 +30,7 @@
         (.stop database-container)))))
 
 (deftest todo-table-test
-  (let [database-container (helpers/create-db-contatiner)]
+  (let [database-container (helpers/create-db-container)]
     (try
       (.start database-container)
       (helpers/with-system

@@ -3,7 +3,7 @@
   (:require [com.stuartsierra.component :as component]
             [next.jdbc.connection :as connection]
             [rw-api.components.in-memory-state-comp :as in-memory-state-comp]
-            [rw-api.components.pedestal-comp :as pedestal-comp]
+            [rw-api.components.pedestal-comp :as  pedestal-comp]
             [rw-api.config :as config])
   (:import (com.zaxxer.hikari HikariDataSource)
            (org.flywaydb.core Flyway))) 

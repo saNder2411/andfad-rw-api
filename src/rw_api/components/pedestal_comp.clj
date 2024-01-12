@@ -124,7 +124,7 @@
       (assoc comp :server server)))
 
   (stop [comp]
-    (println "Stoping PedestalComp")
+    (println "Stopping PedestalComp")
     (when-let [server (:server comp)]
       (http/stop server))
     (assoc comp :server nil)))

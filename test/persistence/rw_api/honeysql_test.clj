@@ -17,7 +17,7 @@
     (sql/format))
 
 (deftest migrations-honeysql-query-test
-  (let [database-container (helpers/create-db-contatiner)]
+  (let [database-container (helpers/create-db-container)]
     (try
       (.start database-container)
       (helpers/with-system
@@ -43,7 +43,7 @@
         (.stop database-container)))))
 
 (deftest todo-table-honeysql-query-test
-  (let [database-container (helpers/create-db-contatiner)]
+  (let [database-container (helpers/create-db-container)]
     (try
       (.start database-container)
       (helpers/with-system

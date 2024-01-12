@@ -24,5 +24,5 @@
   (component/system-map
    :data-source (core/data-source-comp config)))
 
-(defn create-db-contatiner []
+(defn create-db-container []
   (doto (PostgreSQLContainer. "postgres:15.4")))
